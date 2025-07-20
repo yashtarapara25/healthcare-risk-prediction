@@ -27,7 +27,8 @@ def generate_video_advice(text):
     tts = gTTS(text=text, lang=lang_code)
     tts.save("advice.mp3")
 
-    image_file = "doctor_image.jpg"
+    image_file = os.path.join("dashboard", "doctor_image.jpg")
+
     video_file = "advice_video.mp4"
 
     if os.path.exists(image_file):
