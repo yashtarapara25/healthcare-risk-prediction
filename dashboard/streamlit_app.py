@@ -19,7 +19,7 @@ except:
     st.stop()
 
 # Load hospital data
-hospital_df = pd.read_csv('../data/hospital_kpi_sample.csv') if os.path.exists('../data/hospital_kpi_sample.csv') else pd.DataFrame()
+hospital_df = pd.read_csv('data/hospital_kpi_sample.csv') if os.path.exists('data/hospital_kpi_sample.csv') else pd.DataFrame()
 
 # Text-to-speech and video generation (without moviepy becasue in python 13.3 in moviepy not supported)  
 def generate_video_advice(text):
