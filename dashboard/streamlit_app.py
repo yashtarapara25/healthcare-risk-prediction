@@ -6,6 +6,7 @@ import numpy as np
 import os
 import io
 from gtts import gTTS
+import subprocess
 
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
 st.title("🩺 Disease Risk Prediction Dashboard")
@@ -21,32 +22,54 @@ except:
 # Load hospital data
 hospital_df = pd.read_csv('data/hospital_kpi_sample.csv') if os.path.exists('data/hospital_kpi_sample.csv') else pd.DataFrame()
 
-# Text-to-speech and video generation (without moviepy becasue in python 13.3 in moviepy not supported)  
+
+
 def generate_video_advice(text):
     lang_code = "en"
     tts = gTTS(text=text, lang=lang_code)
-    tts.save("advice.mp3")
+    audio_path = os.path.join("dashboard", "advice.mp3")
+    tts.save(audio_path)
 
-    image_file = os.path.join("dashboard", "doctor_image.jpg")
+    image_path = os.path.join("dashboard", "doctor_image.jpg")
+    video_path = os.path.join("dashboard", "advice_video.mp4")
 
-    video_file = "advice_video.mp4"
+    if os.path.exists(image_path):
+        try:
+            ffmpeg_cmd = [
+                "ffmpeg",
+                "-y",
+                "-loop", "1",
+                "-i", image_path,
+                "-i", audio_path,
+                "-c:v", "libx264",
+                "-tune", "stillimage",
+                "-c:a", "aac",
+                "-b:a", "192k",
+                "-pix_fmt", "yuv420p",
+                "-shortest",
+                video_path
+            ]
+            subprocess.run(ffmpeg_cmd, check=True)
 
-    if os.path.exists(image_file):
-        ffmpeg_command = (
-            f'ffmpeg -y -loop 1 -i "{image_file}" -i "advice.mp3" '
-            f'-c:v libx264 -tune stillimage -c:a aac -b:a 192k '
-            f'-pix_fmt yuv420p -shortest "{video_file}"'
-        )
-        os.system(ffmpeg_command)
-
-        if os.path.exists(video_file):
-            with open(video_file, "rb") as vf:
-                st.video(vf.read())
-        else:
-            st.error("❌ Video file not generated.")
+            if os.path.exists(video_path):
+                with open(video_path, "rb") as vf:
+                    st.video(vf.read())
+            else:
+                st.error("❌ Video file was not created successfully.")
+        except FileNotFoundError:
+            st.warning("⚠️ FFmpeg not installed or not found in PATH.")
+            with open(audio_path, "rb") as audio_file:
+                st.audio(audio_file.read(), format="audio/mp3")
+        except subprocess.CalledProcessError as e:
+            st.error("❌ FFmpeg failed to generate video.")
+            st.text(f"Error: {e}")
+            with open(audio_path, "rb") as audio_file:
+                st.audio(audio_file.read(), format="audio/mp3")
     else:
-        with open("advice.mp3", "rb") as audio_file:
+        st.warning("🖼️ Image not found. Showing audio only.")
+        with open(audio_path, "rb") as audio_file:
             st.audio(audio_file.read(), format="audio/mp3")
+
 
 
 # Encode patient input
