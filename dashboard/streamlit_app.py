@@ -22,13 +22,14 @@ except:
 hospital_df = pd.read_csv('data/hospital_kpi_sample.csv') if os.path.exists('data/hospital_kpi_sample.csv') else pd.DataFrame()
 
 
-def generate_video_advice(text):
+def generate_audio_advice(text):
     lang_code = "en"
     tts = gTTS(text=text, lang=lang_code)
-    tts.save("dashboard/advice.mp3")
-    with open("dashboard/advice.mp3", "rb") as audio_file:
-        st.audio(audio_file.read(), format="audio/mp3")
+    tts.save("advice.mp3")
 
+    # Play the audio directly in Streamlit
+    with open("advice.mp3", "rb") as audio_file:
+        st.audio(audio_file.read(), format="audio/mp3")
 
 
 # Encode patient input
@@ -105,7 +106,7 @@ if st.button("🧪 Predict Now"):
 
     st.markdown("### 👨‍⚕️ Doctor's Detailed Advice")
     st.markdown(advice)
-    generate_video_advice(advice)
+    generate_audio_advice(advice)
 
 # 🏥 Hospital KPI Insights
 if not hospital_df.empty:
