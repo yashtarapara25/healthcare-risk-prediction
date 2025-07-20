@@ -11,10 +11,11 @@ st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
 st.title("🩺 Disease Risk Prediction Dashboard")
 
 # Load model
+# Load model
 try:
-    model = joblib.load('../models/disease_predictor.pkl')
+    model = joblib.load('models/disease_predictor.pkl')  # ✅ fixed path
 except:
-    st.error("❌ Model file not found! Make sure 'disease_predictor.pkl' is in the ../models folder.")
+    st.error("❌ Model file not found! Make sure 'disease_predictor.pkl' is in the models folder.")
     st.stop()
 
 # Load hospital data
