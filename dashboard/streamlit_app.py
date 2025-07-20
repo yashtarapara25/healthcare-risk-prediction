@@ -6,7 +6,6 @@ import numpy as np
 import os
 import io
 from gtts import gTTS
-import subprocess
 
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
 st.title("🩺 Disease Risk Prediction Dashboard")
@@ -23,52 +22,12 @@ except:
 hospital_df = pd.read_csv('data/hospital_kpi_sample.csv') if os.path.exists('data/hospital_kpi_sample.csv') else pd.DataFrame()
 
 
-
 def generate_video_advice(text):
     lang_code = "en"
     tts = gTTS(text=text, lang=lang_code)
-    audio_path = os.path.join("dashboard", "advice.mp3")
-    tts.save(audio_path)
-
-    image_path = os.path.join("dashboard", "doctor_image.jpg")
-    video_path = os.path.join("dashboard", "advice_video.mp4")
-
-    if os.path.exists(image_path):
-        try:
-            ffmpeg_cmd = [
-                "ffmpeg",
-                "-y",
-                "-loop", "1",
-                "-i", image_path,
-                "-i", audio_path,
-                "-c:v", "libx264",
-                "-tune", "stillimage",
-                "-c:a", "aac",
-                "-b:a", "192k",
-                "-pix_fmt", "yuv420p",
-                "-shortest",
-                video_path
-            ]
-            subprocess.run(ffmpeg_cmd, check=True)
-
-            if os.path.exists(video_path):
-                with open(video_path, "rb") as vf:
-                    st.video(vf.read())
-            else:
-                st.error("❌ Video file was not created successfully.")
-        except FileNotFoundError:
-            st.warning("⚠️ FFmpeg not installed or not found in PATH.")
-            with open(audio_path, "rb") as audio_file:
-                st.audio(audio_file.read(), format="audio/mp3")
-        except subprocess.CalledProcessError as e:
-            st.error("❌ FFmpeg failed to generate video.")
-            st.text(f"Error: {e}")
-            with open(audio_path, "rb") as audio_file:
-                st.audio(audio_file.read(), format="audio/mp3")
-    else:
-        st.warning("🖼️ Image not found. Showing audio only.")
-        with open(audio_path, "rb") as audio_file:
-            st.audio(audio_file.read(), format="audio/mp3")
+    tts.save("dashboard/advice.mp3")
+    with open("dashboard/advice.mp3", "rb") as audio_file:
+        st.audio(audio_file.read(), format="audio/mp3")
 
 
 
