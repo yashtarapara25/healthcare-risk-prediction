@@ -1,33 +1,38 @@
+
 import streamlit as st
 import pandas as pd
 import joblib
 import numpy as np
 import os
+import io
 from gtts import gTTS
 
-# Page setup
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
 st.title("🩺 Disease Risk Prediction Dashboard")
 
 # Load model
+# Load model
 try:
-    model = joblib.load('models/disease_predictor.pkl')
-except FileNotFoundError:
-    st.error("❌ Model file not found! Ensure 'disease_predictor.pkl' is inside the 'models/' folder.")
+    model = joblib.load('models/disease_predictor.pkl')  # ✅ fixed path
+except:
+    st.error("❌ Model file not found! Make sure 'disease_predictor.pkl' is in the models folder.")
     st.stop()
 
 # Load hospital data
 hospital_df = pd.read_csv('data/hospital_kpi_sample.csv') if os.path.exists('data/hospital_kpi_sample.csv') else pd.DataFrame()
 
-# Function: Text-to-speech audio only
+
 def generate_audio_advice(text):
     lang_code = "en"
     tts = gTTS(text=text, lang=lang_code)
     tts.save("advice.mp3")
+
+    # Play the audio directly in Streamlit
     with open("advice.mp3", "rb") as audio_file:
         st.audio(audio_file.read(), format="audio/mp3")
 
-# Function: Encode user input
+
+# Encode patient input
 def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exercise, history):
     gender_male = 1 if gender == "Male" else 0
     smoking_yes = 1 if smoking == "Yes" else 0
@@ -35,11 +40,8 @@ def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exer
     history_yes = 1 if history == "Yes" else 0
     return [age, glucose, bp, bmi, insulin, pedigree, gender_male, smoking_yes, exercise_regular, history_yes]
 
-# ==========================
-# 🔍 SINGLE PATIENT PREDICTION
-# ==========================
+# 🧪 Single Patient Prediction
 st.subheader("🔍 Predict Single Patient Risk")
-
 age = st.slider("Age", 18, 100, 30)
 glucose = st.slider("Glucose", 50, 200, 100)
 bp = st.slider("Blood Pressure", 40, 150, 90)
@@ -60,28 +62,45 @@ if st.button("🧪 Predict Now"):
 
     if risk >= 0.75:
         advice = (
-            "You are at very high risk of developing diabetes.\n"
+            " You are at very high risk of developing diabetes.\n\n"
+            " Medical Recommendation:\n\n"
             "- Visit an endocrinologist within 48 hours.\n"
-            "- Get tests: HbA1c, Lipid Profile, Kidney Function.\n"
-            "- Likely medicines: Metformin, Insulin.\n"
-            "- Estimated Cost: ₹3000–₹6000/month."
+            "- Get the following tests done: HbA1c, Fasting Sugar, Lipid Profile, Kidney Function Test.\n"
+            "- Monitor your blood sugar levels daily.\n\n"
+            "- Treatment Plan:\n"
+            "- Likely prescription: Metformin, Insulin (based on test reports).\n"
+            "- Start a strict low-carb diet.\n\n"
+            "- Additional Advice:\n\n"
+            "- Avoid sugary foods, cold drinks, and processed snacks.\n"
+            "- Check for foot numbness or blurred vision.\n\n"
+            "- Estimated Cost: ₹3000 to ₹6000/month"
         )
         st.error("🔴 Very High Risk - Immediate Medical Attention Needed")
+
     elif risk >= 0.5:
         advice = (
-            "You are at moderate risk of developing diabetes.\n"
-            "- Schedule a checkup within 7 days.\n"
-            "- Begin exercise and monitor sugar levels.\n"
-            "- Possible medicine: Glimepiride.\n"
-            "- Estimated Cost: ₹1000–₹2500/month."
+            " You are at moderate risk of developing diabetes.\n\n"
+            " Medical Recommendation:\n\n"
+            "- Schedule a checkup within the next 7 days.\n\n"
+            "- Recommended tests: Fasting Blood Sugar, BP Monitoring.\n\n"
+            "- Begin a regular exercise routine (at least 30 min daily).\n\n"
+            "- Suggested Lifestyle/Treatment:\n\n"
+            "- Follow a low glycemic index diet.\n\n"
+            "- Take prescribed medicine like Glimepiride if suggested by doctor.\n\n"
+            "- Estimated Cost: ₹1000 to ₹2500/month"
         )
         st.info("🟠 Moderate Risk - Take Action Now")
+
     else:
         advice = (
-            "You are at low risk. Keep up your healthy lifestyle.\n"
-            "- Maintain healthy diet & regular exercise.\n"
-            "- Get annual checkups (Fasting Blood Sugar, BP).\n"
-            "- Estimated Maintenance Cost: ₹300–₹800/year."
+            " Your risk is low, and your current lifestyle is keeping you healthy.\n\n"
+            " Recommended Care:\n"
+            "Continue healthy eating and regular exercise.\n\n"
+            "Get annual checkups: Fasting Blood Sugar, BP.\n\n"
+            " Pro Tips:\n"
+            " Sleep 7-8 hours daily.\n"
+            " Avoid late night meals and sugary snacks.\n\n"
+            " Estimated Maintenance Cost: ₹300 to ₹800/year"
         )
         st.success("🟢 Low Risk - Keep Maintaining Your Health")
 
@@ -89,27 +108,23 @@ if st.button("🧪 Predict Now"):
     st.markdown(advice)
     generate_audio_advice(advice)
 
-# ==========================
-# 🏥 HOSPITAL KPI INSIGHTS
-# ==========================
+# 🏥 Hospital KPI Insights
 if not hospital_df.empty:
     st.subheader("🏥 Hospital KPI Insights")
     selected_hospital = st.selectbox("Select a Hospital", hospital_df['HospitalName'].unique())
     kpi = hospital_df[hospital_df['HospitalName'] == selected_hospital]
     st.dataframe(kpi.drop_duplicates(subset='HospitalName').T)
 else:
-    st.info("Upload 'hospital_kpi_sample.csv' into 'data/' folder to view KPIs.")
+    st.info("Upload 'hospital_kpi_sample.csv' in data/ folder to enable KPI section.")
 
-# ==========================
-# 📤 CSV UPLOAD FOR ANALYSIS
-# ==========================
+# 🧾 Upload + Analyze Hospital KPI CSV
 st.subheader("📤 Upload any Hospital KPI CSV")
 hospital_upload = st.file_uploader("Upload CSV", type=["csv"], key="hospital_kpi_csv")
 
 if hospital_upload:
     try:
         df = pd.read_csv(hospital_upload)
-        st.subheader("📌 Data Preview")
+        st.subheader("📌 Preview")
         st.dataframe(df.head())
 
         st.subheader("📊 Descriptive Statistics")
@@ -140,4 +155,4 @@ if hospital_upload:
                 readmit = df.groupby('HospitalName')['ReadmissionRate'].mean().sort_values().head(5)
                 st.dataframe(readmit.reset_index())
     except Exception as e:
-        st.error(f"❌ Error reading CSV: {e}")
+        st.error(f"❌ Error: {e}")
