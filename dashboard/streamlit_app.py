@@ -31,6 +31,7 @@ def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exer
         gender = encoders['Gender'].transform([gender])[0]
         smoking = encoders['Smoking'].transform([smoking])[0]
 
+
         if exercise not in encoders['Exercise'].classes_:
             exercise = encoders['Exercise'].classes_[0]  # Use default known class
         exercise = encoders['Exercise'].transform([exercise])[0]
