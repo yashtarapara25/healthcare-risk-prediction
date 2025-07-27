@@ -6,7 +6,7 @@ import os
 from gtts import gTTS
 
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
-st.title("🩺Disease Risk Prediction Dashboard")
+st.title("🩺 Disease Risk Prediction Dashboard")
 
 # Load model and encoders
 try:
@@ -29,11 +29,10 @@ def generate_audio_advice(text):
 def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exercise, history):
     try:
         gender = encoders['Gender'].transform([gender])[0]
-        smoking_enc = encoders['Smoking'].transform([smoking])[0]
-
+        smoking = encoders['Smoking'].transform([smoking])[0]
 
         if exercise not in encoders['Exercise'].classes_:
-            exercise = encoders['Exercise'].classes_[0]  # Use default known class
+            exercise = encoders['Exercise'].classes_[0]
         exercise = encoders['Exercise'].transform([exercise])[0]
 
         history = encoders['FamilyHistory'].transform([history])[0]
