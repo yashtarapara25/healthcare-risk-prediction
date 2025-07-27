@@ -6,7 +6,7 @@ import os
 from gtts import gTTS
 
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
-st.title("Disease Risk Prediction Dashboard")
+st.title("🩺Disease Risk Prediction Dashboard")
 
 # Load model and encoders
 try:
@@ -29,7 +29,7 @@ def generate_audio_advice(text):
 def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exercise, history):
     try:
         gender = encoders['Gender'].transform([gender])[0]
-        smoking = encoders['Smoking'].transform([smoking])[0]
+        smoking_enc = encoders['Smoking'].transform([smoking])[0]
 
 
         if exercise not in encoders['Exercise'].classes_:
@@ -44,7 +44,7 @@ def encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exer
     return np.array([[age, gender, glucose, bp, bmi, insulin, pedigree,
                       smoking, exercise, history]])
 
-# 🪢 Single Patient Prediction
+# 🧪 Single Patient Prediction
 st.subheader("🔍 Predict Single Patient Risk")
 age = st.slider("Age", 18, 100, 30)
 glucose = st.slider("Glucose", 50, 200, 100)
@@ -59,7 +59,7 @@ history = st.selectbox("Family History", ["Yes", "No"])
 
 features = encode_input(age, glucose, bp, bmi, insulin, pedigree, gender, smoking, exercise, history)
 
-if st.button("🪢 Predict Now"):
+if st.button("🩺 Predict Now"):
     try:
         risk = model.predict_proba(features)[0][1]
         st.metric("🧠 Risk Score", f"{risk * 100:.2f}%")
@@ -100,9 +100,45 @@ if st.button("🪢 Predict Now"):
             )
             st.success("🟢 Low Risk - Keep Maintaining Your Health")
 
+        # Additional doctor-like personalized checks
+        doctor_notes = []
+
+        if bp < 90:
+            doctor_notes.append("🩸 Low BP: Increase salt intake and hydration.")
+        elif bp > 140:
+            doctor_notes.append("🩺 High BP: Reduce salt and avoid stress. Consider medication.")
+
+        if glucose < 70:
+            doctor_notes.append("🍭 Glucose too low. Eat sugar immediately and consult doctor.")
+        elif glucose > 140:
+            doctor_notes.append("🍬 High glucose level. Limit sugar and monitor regularly.")
+
+        if bmi < 18.5:
+            doctor_notes.append("⚖️ Underweight: Increase healthy calories, check for malnutrition.")
+        elif bmi > 25:
+            doctor_notes.append("📈 Overweight: Start calorie-deficit diet and light cardio.")
+
+        if insulin < 15:
+            doctor_notes.append("💉 Low insulin. Could indicate impaired beta cell function.")
+        elif insulin > 150:
+            doctor_notes.append("⚠️ High insulin: Risk of insulin resistance. Reduce carbs.")
+
+        if age > 60:
+            doctor_notes.append("👴 Age 60+: Annual checkups are strongly recommended.")
+
+        if history == "Yes":
+            doctor_notes.append("🧬 Family history present. Stay consistent with screenings.")
+
+        if pedigree > 0.8:
+            doctor_notes.append("📊 High diabetes pedigree score. Be extra cautious with lifestyle.")
+
+        for note in doctor_notes:
+            st.info(note)
+
         st.markdown("### 👨‍⚕️ Doctor's Detailed Advice")
         st.markdown(advice)
         generate_audio_advice(advice)
+
     except Exception as e:
         st.error(f"Prediction error: {e}")
 
