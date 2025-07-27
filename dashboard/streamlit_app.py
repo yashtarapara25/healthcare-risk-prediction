@@ -6,7 +6,7 @@ import os
 from gtts import gTTS
 
 st.set_page_config(page_title="Healthcare Risk Prediction", layout="centered")
-st.title("🯪 Disease Risk Prediction Dashboard")
+st.title("Disease Risk Prediction Dashboard")
 
 # Load model and encoders
 try:
